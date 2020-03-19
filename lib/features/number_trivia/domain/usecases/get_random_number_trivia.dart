@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
-import 'package:tdnumbers/core/error/failures.dart';
-import 'package:tdnumbers/core/usecases/usecase.dart';
-import 'package:tdnumbers/features/number_trivia/domain/entities/number_trivia.dart';
-import 'package:tdnumbers/features/number_trivia/domain/repositories/number_trivia_repository.dart';
+
+import '../../../../core/error/failures.dart';
+import '../../../../core/usecases/usecase.dart';
+import '../entities/number_trivia.dart';
+import '../repositories/number_trivia_repository.dart';
 
 class GetRandomNumberTrivia implements UseCase<NumberTrivia, NoParams>{
   final NumberTriviaRepository repository;
@@ -11,13 +11,9 @@ class GetRandomNumberTrivia implements UseCase<NumberTrivia, NoParams>{
   GetRandomNumberTrivia(this.repository);
 
   @override
-  Future<Either<Failure, NumberTrivia>> call(NoParams params) {
+  Future<Either<Failure, NumberTrivia>> call(NoParams params) async {
     // TODO: implement call
-    return null;
+    return await repository.getRandomNumberTrivia();
   }
 
 }
-
-
-
-class NoParams extends Equatable{}
