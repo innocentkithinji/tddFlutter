@@ -1,13 +1,44 @@
 import 'package:dartz/dartz.dart';
-import 'package:tdnumbers/core/error/failures.dart';
-import 'package:tdnumbers/features/number_trivia/domain/entities/number_trivia.dart';
-import 'package:tdnumbers/features/number_trivia/domain/repositories/number_trivia_repository.dart';
+import 'package:meta/meta.dart';
+import 'package:tdnumbers/core/error/exceptions.dart';
 
-class NumberTriviaRepositoryImplementation implements NumberTriviaRepository{
+import '../../../../core/error/failures.dart';
+import '../../../../core/platform/network_info.dart';
+import '../../domain/entities/number_trivia.dart';
+import '../../domain/repositories/number_trivia_repository.dart';
+import '../datasources/number_trivia_local_data_source.dart';
+import '../datasources/number_trivia_remote_data_source.dart';
+
+class NumberTriviaRepositoryImpl implements NumberTriviaRepository {
+  final NetworkInfo networkInfo;
+  final NumberTriviaRemoteDataSource remoteDataSource;
+  final NumberTriviaLocalDataSource localDataSource;
+
+  NumberTriviaRepositoryImpl(
+      {@required this.networkInfo,
+      @required this.remoteDataSource,
+      @required this.localDataSource});
+
   @override
-  Future<Either<Failure, NumberTrivia>> getConcreteNumberTrivia(int number) {
-    // TODO: implement getConcreteNumberTrivia
-    return null;
+  Future<Either<Failure, NumberTrivia>> getConcreteNumberTrivia(
+      int number) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remoteTrivia =
+            await remoteDataSource.getConcreteNumberTrivia(number);
+        localDataSource.cacheNumberTrivia(remoteTrivia);
+        return Right(remoteTrivia);
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        final localTrivia = await localDataSource.getLastNumberTrivia();
+        return Right(localTrivia);
+      } on CacheException {
+        return Left(CacheFailure());
+      }
+    }
   }
 
   @override
@@ -15,5 +46,4 @@ class NumberTriviaRepositoryImplementation implements NumberTriviaRepository{
     // TODO: implement getRandomNumberTrivia
     return null;
   }
-
 }
