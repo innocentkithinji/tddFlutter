@@ -43,13 +43,27 @@ void main() {
       'should return CacheException when there is no cached data',
       () async {
         //arrange
-        when(mockSharedPreferences.getString(any))
-          .thenReturn(null);
+        when(mockSharedPreferences.getString(any)).thenReturn(null);
         //act
         final call = dataSource.getLastNumberTrivia;
         //assert
         expect(() => call(), throwsA(TypeMatcher<CacheException>()));
+      },
+    );
+  });
 
+  group('CacheNumberTrivia', () {
+    final tNumberTrivia = NumberTriviaModel(text: 'Test Text', number: 1);
+
+    test(
+      'should call SharedPreference and cache the NumberTrivia',
+      () async {
+        //act
+        dataSource.cacheNumberTrivia(tNumberTrivia);
+        //assert
+        final expectedJsonString = json.encode(tNumberTrivia.toJson());
+        verify(mockSharedPreferences.setString(
+            CACHED_NUMBER_TRIVIA, expectedJsonString));
       },
     );
   });
